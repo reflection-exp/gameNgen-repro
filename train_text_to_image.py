@@ -99,7 +99,9 @@ def log_validation(
         for _ in range(args.num_validation_images):
             images.append(
                 pipeline(
-                    args.validation_prompt, num_inference_steps=VALIDATION_INFERENCE_STEPS, generator=generator
+                    args.validation_prompt,
+                    num_inference_steps=VALIDATION_INFERENCE_STEPS,
+                    generator=generator,
                 ).images[0]
             )
 
@@ -230,7 +232,9 @@ def parse_args():
         default=DEFAULT_TRAIN_BATCH_SIZE,
         help="Batch size (per device) for the training dataloader.",
     )
-    parser.add_argument("--num_train_epochs", type=int, default=DEFAULT_NUM_TRAIN_EPOCHS)
+    parser.add_argument(
+        "--num_train_epochs", type=int, default=DEFAULT_NUM_TRAIN_EPOCHS
+    )
     parser.add_argument(
         "--max_train_steps",
         type=int,

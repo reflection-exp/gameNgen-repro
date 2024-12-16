@@ -5,24 +5,22 @@ from torch import nn
 
 
 class CustomCNN(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Box, features_dim: int = 128, **kwargs):
+    def __init__(
+        self, observation_space: gym.spaces.Box, features_dim: int = 128, **kwargs
+    ):
         super().__init__(observation_space, features_dim)
 
         self.cnn = nn.Sequential(
             nn.LayerNorm([3, 100, 156]),
-
             nn.Conv2d(3, 32, kernel_size=8, stride=4, padding=0, bias=False),
             nn.LayerNorm([32, 24, 38]),
             nn.LeakyReLU(**kwargs),
-
             nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0, bias=False),
             nn.LayerNorm([64, 11, 18]),
             nn.LeakyReLU(**kwargs),
-
             nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=0, bias=False),
             nn.LayerNorm([64, 9, 16]),
             nn.LeakyReLU(**kwargs),
-
             nn.Flatten(),
         )
 
@@ -44,8 +42,9 @@ def init_net(m: nn.Module):
         nn.init.kaiming_normal_(
             m.weight,
             a=0.1,  # Same as the leakiness parameter for LeakyReLu.
-            mode='fan_in',  # Preserves magnitude in the forward pass.
-            nonlinearity='leaky_relu')
+            mode="fan_in",  # Preserves magnitude in the forward pass.
+            nonlinearity="leaky_relu",
+        )
 
 
 def init_model(model):

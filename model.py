@@ -5,8 +5,14 @@ from diffusers import AutoencoderKL, UNet2DConditionModel, DDIMScheduler
 from transformers import CLIPTokenizer, CLIPTextModel
 from huggingface_hub import hf_hub_download
 from config_sd import (
-    BUFFER_SIZE, NUM_BUCKETS, MODEL_PRETRAINED_PATH, ACTION_EMBEDDING_DIM,
-    CONV_KERNEL_SIZE, CONV_STRIDE, CONV_PADDING, UNET_CHANNELS
+    BUFFER_SIZE,
+    NUM_BUCKETS,
+    MODEL_PRETRAINED_PATH,
+    ACTION_EMBEDDING_DIM,
+    CONV_KERNEL_SIZE,
+    CONV_STRIDE,
+    CONV_PADDING,
+    UNET_CHANNELS,
 )
 from huggingface_hub import upload_folder
 from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
@@ -25,7 +31,7 @@ def get_ft_vae_decoder():
     file_path = hf_hub_download(
         repo_id="P-H-B-D-a16z/GameNGenSDVaeDecoder", filename="trained_vae_decoder.pth"
     )
-    decoder_state_dict = torch.load(file_path, weights_only=True)
+    decoder_state_dict = torch.load(file_path, weights_only=True, map_location=torch.device('cpu'))
     return decoder_state_dict
 
 
@@ -83,8 +89,11 @@ def get_model(
         # This is to accomodate concatenating previous frames in the channels dimension
         new_in_channels = 4 * (BUFFER_SIZE + 1)
         new_conv_in = torch.nn.Conv2d(
-            new_in_channels, UNET_CHANNELS, kernel_size=CONV_KERNEL_SIZE,
-            stride=CONV_STRIDE, padding=CONV_PADDING
+            new_in_channels,
+            UNET_CHANNELS,
+            kernel_size=CONV_KERNEL_SIZE,
+            stride=CONV_STRIDE,
+            padding=CONV_PADDING,
         )
         torch.nn.init.xavier_uniform_(new_conv_in.weight)
         torch.nn.init.zeros_(new_conv_in.bias)
@@ -179,13 +188,13 @@ def load_model(
     text_encoder = CLIPTextModel.from_pretrained(
         PRETRAINED_MODEL_NAME_OR_PATH, subfolder="text_encoder"
     )
-    
+
     if device:
         unet = unet.to(device)
         vae = vae.to(device)
         action_embedding = action_embedding.to(device)
         text_encoder = text_encoder.to(device)
-    
+
     return unet, vae, action_embedding, noise_scheduler, tokenizer, text_encoder
 
 
@@ -231,9 +240,9 @@ def save_and_maybe_upload_to_hub(
         try:
             upload_folder(
                 repo_id=repo_id,
-            folder_path=output_dir,
-            commit_message="End of training",
-            ignore_patterns=["step_*", "epoch_*"],
+                folder_path=output_dir,
+                commit_message="End of training",
+                ignore_patterns=["step_*", "epoch_*"],
             )
             save_model_card(
                 repo_id=repo_id,

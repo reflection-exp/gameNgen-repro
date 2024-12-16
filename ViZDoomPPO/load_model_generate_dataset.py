@@ -8,11 +8,11 @@
 #     \  $/   | $$ /$$$$$$$$| $$$$$$$/|  $$$$$$/|  $$$$$$/| $$ | $$ | $$      | $$      | $$      |  $$$$$$/    #
 #      \_/    |__/|________/|_______/  \______/  \______/ |__/ |__/ |__/      |__/      |__/       \______/     #
 #                                                                                                               #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #                                                                                                
-                                                                                                         
-# FORK OF LEANDRO KIELIGER'S DOOM PPO TUTORIAL: https://lkieliger.medium.com/deep-reinforcement-learning-in-practice-by-playing-doom-part-1-getting-started-618c99075c77                                                                                                       
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# SCRIPT TO RUN PPO AGENT AND GENERATE DATASET FOR DOOM ENVIRONMENT. 
+# FORK OF LEANDRO KIELIGER'S DOOM PPO TUTORIAL: https://lkieliger.medium.com/deep-reinforcement-learning-in-practice-by-playing-doom-part-1-getting-started-618c99075c77
+
+# SCRIPT TO RUN PPO AGENT AND GENERATE DATASET FOR DOOM ENVIRONMENT.
 
 import imageio
 from common import envs
@@ -36,10 +36,7 @@ from datasets import Dataset, DatasetDict
 import glob
 import pyarrow.parquet as pq
 from train_ppo_parallel import DoomWithBotsCurriculum, game_instance
-from stable_baselines3.common.vec_env import (
-    VecTransposeImage,
-    DummyVecEnv
-)
+from stable_baselines3.common.vec_env import VecTransposeImage, DummyVecEnv
 from PIL import Image
 from loguru import logger
 
@@ -70,12 +67,12 @@ def make_gif(agent, file_path, eval_env_args, num_episodes=1):
         file_path (str): Path to save the generated GIF.
         eval_env_args (dict): Arguments for the evaluation environment.
         num_episodes (int): Number of episodes to run.
-    
+
     Returns:
         list: Collected health values for analysis.
     """
     # Set frame_skip to 1 to capture all frames
-    eval_env_args['frame_skip'] = 1
+    eval_env_args["frame_skip"] = 1
     env = dummy_vec_env_with_bots_curriculum(1, **eval_env_args)
 
     images = []
@@ -92,7 +89,7 @@ def make_gif(agent, file_path, eval_env_args, num_episodes=1):
         while not done:
             if frame_counter % ACTION_REPEAT == 0:
                 current_action, _ = agent.predict(obs)
-            
+
             obs, _, done, _ = env.step(current_action)
 
             # Get the raw screen buffer from the Doom game instance
@@ -116,7 +113,7 @@ def make_gif(agent, file_path, eval_env_args, num_episodes=1):
     imageio.mimsave(file_path, images[:1000], fps=20)
     env.close()
     logger.info(f"GIF saved to {file_path}")
-    
+
     return health_values
 
 
@@ -130,7 +127,7 @@ def make_pkls_dataset(agent, output_dir, eval_env_args, num_episodes=1):
         num_episodes (int): Number of episodes to run.
     """
     # Set frame_skip to 1 to capture all frames
-    eval_env_args['frame_skip'] = 1
+    eval_env_args["frame_skip"] = 1
     env = dummy_vec_env_with_bots_curriculum(1, **eval_env_args)
     os.makedirs(output_dir, exist_ok=True)
 
@@ -165,11 +162,11 @@ def make_pkls_dataset(agent, output_dir, eval_env_args, num_episodes=1):
             frame_counter += 1
 
         episode_data = {
-            'frames': [compress_image(frame) for frame in frames],
-            'actions': actions,
-            'health': health_values,
-            'step_id': step_ids,
-            'episode_id': [episode] * len(step_ids)
+            "frames": [compress_image(frame) for frame in frames],
+            "actions": actions,
+            "health": health_values,
+            "step_id": step_ids,
+            "episode_id": [episode] * len(step_ids),
         }
         save_episodes_to_parquet(episode_data, output_dir)
 
@@ -181,7 +178,7 @@ def upload_to_hf(local_path: str, repo_id: str):
     try:
         # Ensure the dataset repository exists
         api.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True)
-        
+
         # Upload the zip file
         api.upload_file(
             path_or_fileobj=local_path,
@@ -194,56 +191,66 @@ def upload_to_hf(local_path: str, repo_id: str):
         print(f"Error uploading file: {e}")
 
 
-def compress_image(image_array: np.ndarray, format='JPEG', quality=85):
+def compress_image(image_array: np.ndarray, format="JPEG", quality=85):
     """Compress image using PIL with JPEG compression"""
     img = Image.fromarray(image_array)
     buffer = io.BytesIO()
     img.save(buffer, format=format, quality=quality)
     return buffer.getvalue()
 
+
 def save_episodes_to_parquet(episode_data: dict, output_parquet: str):
     """Save batch with compressed binary images instead of base64"""
     processed_data = {
-        'episode_id': episode_data['episode_id'],
-        'frames': [frame for frame in episode_data['frames']],
-        'actions': [int(a) for a in episode_data['actions']],
-        'health': [int(h) for h in episode_data['health']],
-        'step_ids': [int(s) for s in episode_data['step_id']]
+        "episode_id": episode_data["episode_id"],
+        "frames": [frame for frame in episode_data["frames"]],
+        "actions": [int(a) for a in episode_data["actions"]],
+        "health": [int(h) for h in episode_data["health"]],
+        "step_ids": [int(s) for s in episode_data["step_id"]],
     }
 
     df = pd.DataFrame.from_dict(processed_data)
     table = pa.Table.from_pandas(df)
-    
+
     filename = f'{output_parquet}/episode_{episode_data["episode_id"][0]}.parquet'
-    pq.write_table(table, filename, compression='zstd')
+    pq.write_table(table, filename, compression="zstd")
 
 
 def create_hf_dataset_from_parquets(parquet_dir: str, repo_id: str) -> None:
-
     """Create a HF dataset from multiple parquet files"""
     # Get all parquet files
     parquet_files = glob.glob(f"{parquet_dir}/*.parquet")
-    
+
     # Load and combine all parquet files
     dataset = Dataset.from_parquet(parquet_files)
-    
-    dataset_dict = DatasetDict({
-        'train': dataset,
-    })
-    
-    dataset_dict.push_to_hub(
-            repo_id,
-            private=False
-        )
+
+    dataset_dict = DatasetDict(
+        {
+            "train": dataset,
+        }
+    )
+
+    dataset_dict.push_to_hub(repo_id, private=False)
     logger.info(f"Dataset pushed to hub: {repo_id}")
-    
-    
+
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Generate GIF or Parquet file from pretrained PPO agent")
-    parser.add_argument("--output", choices=["gif", "parquet"], required=True, help="Output format")
-    parser.add_argument("--episodes", type=int, default=1, help="Number of episodes to run")
-    parser.add_argument("--upload", action="store_true", help="Upload the output to Hugging Face Hub")
-    parser.add_argument("--hf_token", help="Hugging Face API token (optional if HF_TOKEN env variable is set)")
+    parser = argparse.ArgumentParser(
+        description="Generate GIF or Parquet file from pretrained PPO agent"
+    )
+    parser.add_argument(
+        "--output", choices=["gif", "parquet"], required=True, help="Output format"
+    )
+    parser.add_argument(
+        "--episodes", type=int, default=1, help="Number of episodes to run"
+    )
+    parser.add_argument(
+        "--upload", action="store_true", help="Upload the output to Hugging Face Hub"
+    )
+    parser.add_argument(
+        "--hf_token",
+        help="Hugging Face API token (optional if HF_TOKEN env variable is set)",
+    )
     parser.add_argument("--hf_repo", help="Hugging Face repository name")
     return parser.parse_args()
 
@@ -275,7 +282,9 @@ def main():
         make_gif(agent2, output_file, eval_env_args, num_episodes=args.episodes)
     else:
         output_dir = "./dataset"
-        make_pkls_dataset(agent2, output_dir, num_episodes=args.episodes, eval_env_args=eval_env_args)
+        make_pkls_dataset(
+            agent2, output_dir, num_episodes=args.episodes, eval_env_args=eval_env_args
+        )
 
     if args.upload:
         if not args.hf_repo:

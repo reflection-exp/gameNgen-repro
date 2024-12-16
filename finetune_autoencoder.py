@@ -10,7 +10,7 @@ import io
 import base64
 import wandb
 from config_sd import HEIGHT, WIDTH
-from tqdm import tqdm   
+from tqdm import tqdm
 
 # Constants
 BATCH_SIZE = 8
@@ -23,12 +23,15 @@ dataset = load_dataset("P-H-B-D-a16z/ViZDoom-Deathmatch-PPO")
 train_dataset = dataset["train"]
 
 # Define image transformations
-transform = transforms.Compose([
-    transforms.Resize((HEIGHT, WIDTH),
-                            interpolation=transforms.InterpolationMode.BILINEAR),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5], [0.5]),
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize(
+            (HEIGHT, WIDTH), interpolation=transforms.InterpolationMode.BILINEAR
+        ),
+        transforms.ToTensor(),
+        transforms.Normalize([0.5], [0.5]),
+    ]
+)
 
 
 # Custom dataset class
@@ -45,14 +48,16 @@ class CustomDataset(torch.utils.data.Dataset):
         image = Image.open(io.BytesIO(base64.b64decode(image_list[0]))).convert("RGB")
         return self.transform(image)
 
+
 # Create dataset and dataloader
 custom_dataset = CustomDataset(train_dataset, transform)
 dataloader = DataLoader(custom_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load the pre-trained VAE
 PRETRAINED_MODEL_NAME_OR_PATH = "CompVis/stable-diffusion-v1-4"
-vae = AutoencoderKL.from_pretrained(PRETRAINED_MODEL_NAME_OR_PATH,
-                                        subfolder="vae").to(DEVICE)
+vae = AutoencoderKL.from_pretrained(PRETRAINED_MODEL_NAME_OR_PATH, subfolder="vae").to(
+    DEVICE
+)
 # Load the saved encoder state dictionary
 decoder_state_dict = torch.load("trained_vae_decoder.pth")
 
@@ -76,16 +81,16 @@ try:
         vae.train()
         total_loss = 0
         print("starting epoch", epoch)
-        
+
         # Wrap the dataloader with tqdm for progress bar
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{NUM_EPOCHS}")
         for step, batch in enumerate(progress_bar):
             batch = batch.to(DEVICE)
-            
+
             # Forward pass
             encoded = vae.encode(batch).latent_dist.sample()
             decoded = vae.decode(encoded).sample
-            
+
             # Compute loss
             loss = criterion(decoded, batch)
 
@@ -95,7 +100,7 @@ try:
             optimizer.step()
 
             total_loss += loss.item()
-            
+
             wandb.log({"step": step + 1, "step_loss": loss.item()})
 
             # Update tqdm description with current step loss
@@ -107,17 +112,19 @@ try:
                 with torch.no_grad():
                     sample = batch[:4]  # Take a small batch for logging
                     recon = vae.decode(vae.encode(sample).latent_dist.sample()).sample
-                    wandb.log({
-                        "original": [wandb.Image(img) for img in sample],
-                        "reconstructed": [wandb.Image(img) for img in recon]
-                    })
+                    wandb.log(
+                        {
+                            "original": [wandb.Image(img) for img in sample],
+                            "reconstructed": [wandb.Image(img) for img in recon],
+                        }
+                    )
                 vae.train()
 
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch+1}/{NUM_EPOCHS}], Loss: {avg_loss:.4f}")
 
         # Log epoch loss
-        wandb.log({"epoch": epoch+1, "epoch_loss": avg_loss})
+        wandb.log({"epoch": epoch + 1, "epoch_loss": avg_loss})
 
 except KeyboardInterrupt:
     print("Training interrupted. Saving model...")
