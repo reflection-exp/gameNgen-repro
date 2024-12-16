@@ -29,3 +29,29 @@ TRAINING_DATASET_DICT = {
     "small": "arnaudstiegler/vizdoom-episode",
     "large": "arnaudstiegler/vizdoom-episode-large",
 }
+
+# Model Architecture
+MODEL_PRETRAINED_PATH = "CompVis/stable-diffusion-v1-4"
+ACTION_EMBEDDING_DIM = 768
+CONV_KERNEL_SIZE = (3, 3)
+CONV_STRIDE = (1, 1)
+CONV_PADDING = (1, 1)
+UNET_CHANNELS = 320
+
+# Training Parameters
+MATMUL_PRECISION = "high"
+VALIDATION_INFERENCE_STEPS = 30
+DEFAULT_TRAIN_BATCH_SIZE = 2
+DEFAULT_NUM_TRAIN_EPOCHS = 100
+DEFAULT_LEARNING_RATE = 2e-5
+DEFAULT_LR_WARMUP_STEPS = 500
+
+# Image Processing
+IMG_INTERPOLATION = "bilinear"
+IMG_NORMALIZATION_MEAN = [0.5]
+IMG_NORMALIZATION_STD = [0.5]
+
+# Random Seeds
+TORCH_SEED = 9052924
+NUMPY_SEED = 9052924
+RANDOM_SEED = 9052924

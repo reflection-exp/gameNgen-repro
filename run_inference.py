@@ -16,13 +16,16 @@ from config_sd import (
     TRAINING_DATASET_DICT,
     WIDTH,
     DEFAULT_NUM_INFERENCE_STEPS,
+    TORCH_SEED,
+    NUMPY_SEED,
+    RANDOM_SEED,
 )
 from dataset import get_single_batch
 from model import load_model
 
-torch.manual_seed(9052924)
-np.random.seed(9052924)
-random.seed(9052924)
+torch.manual_seed(TORCH_SEED)
+np.random.seed(NUMPY_SEED)
+random.seed(RANDOM_SEED)
 
 
 def encode_conditioning_frames(

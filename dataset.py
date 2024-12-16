@@ -2,18 +2,22 @@ import torch
 from PIL import Image
 import io
 from torchvision import transforms
-from config_sd import HEIGHT, WIDTH, BUFFER_SIZE, ZERO_OUT_ACTION_CONDITIONING_PROB
+from config_sd import (
+    HEIGHT, WIDTH, BUFFER_SIZE, ZERO_OUT_ACTION_CONDITIONING_PROB,
+    IMG_INTERPOLATION, IMG_NORMALIZATION_MEAN, IMG_NORMALIZATION_STD
+)
 from datasets import load_dataset
 from data_augmentation import no_img_conditioning_augmentation
 
 
 IMG_TRANSFORMS = transforms.Compose(
-        [
-            transforms.Resize((HEIGHT, WIDTH), interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]),
-        ]
-    )
+    [
+        transforms.Resize((HEIGHT, WIDTH),
+                         interpolation=getattr(transforms.InterpolationMode, IMG_INTERPOLATION.upper())),
+        transforms.ToTensor(),
+        transforms.Normalize(IMG_NORMALIZATION_MEAN, IMG_NORMALIZATION_STD),
+    ]
+)
 
 def collate_fn(examples):
     processed_images = []

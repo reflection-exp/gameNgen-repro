@@ -4,15 +4,17 @@ import textwrap
 from diffusers import AutoencoderKL, UNet2DConditionModel, DDIMScheduler
 from transformers import CLIPTokenizer, CLIPTextModel
 from huggingface_hub import hf_hub_download
-from config_sd import BUFFER_SIZE
-from utils import NUM_BUCKETS
+from config_sd import (
+    BUFFER_SIZE, NUM_BUCKETS, MODEL_PRETRAINED_PATH, ACTION_EMBEDDING_DIM,
+    CONV_KERNEL_SIZE, CONV_STRIDE, CONV_PADDING, UNET_CHANNELS
+)
 from huggingface_hub import upload_folder
 from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
 from safetensors.torch import save_file, load_file
 import json
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = "CompVis/stable-diffusion-v1-4"
+PRETRAINED_MODEL_NAME_OR_PATH = MODEL_PRETRAINED_PATH
 
 
 def get_ft_vae_decoder():
@@ -45,7 +47,7 @@ def get_model(
 
     # This will be used to encode the actions
     action_embedding = torch.nn.Embedding(
-        num_embeddings=action_embedding_dim + 1, embedding_dim=768
+        num_embeddings=action_embedding_dim + 1, embedding_dim=ACTION_EMBEDDING_DIM
     )
     torch.nn.init.normal_(action_embedding.weight, mean=0.0, std=0.02)
 
@@ -81,7 +83,8 @@ def get_model(
         # This is to accomodate concatenating previous frames in the channels dimension
         new_in_channels = 4 * (BUFFER_SIZE + 1)
         new_conv_in = torch.nn.Conv2d(
-            new_in_channels, 320, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)
+            new_in_channels, UNET_CHANNELS, kernel_size=CONV_KERNEL_SIZE,
+            stride=CONV_STRIDE, padding=CONV_PADDING
         )
         torch.nn.init.xavier_uniform_(new_conv_in.weight)
         torch.nn.init.zeros_(new_conv_in.bias)
@@ -114,7 +117,7 @@ def load_action_embedding(
     model_folder: str, action_num_embeddings: int
 ) -> torch.nn.Embedding:
     action_embedding = torch.nn.Embedding(
-        num_embeddings=action_num_embeddings, embedding_dim=768
+        num_embeddings=action_num_embeddings, embedding_dim=ACTION_EMBEDDING_DIM
     )
     if os.path.exists(model_folder):
         action_embedding.load_state_dict(
