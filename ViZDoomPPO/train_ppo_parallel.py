@@ -1,4 +1,4 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 #   /$$    /$$ /$$           /$$$$$$$                                          /$$$$$$$  /$$$$$$$   /$$$$$$    #
 #  | $$   | $$|__/          | $$__  $$                                        | $$__  $$| $$__  $$ /$$__  $$   #
 #  | $$   | $$ /$$ /$$$$$$$$| $$  \ $$  /$$$$$$   /$$$$$$  /$$$$$$/$$$$       | $$  \ $$| $$  \ $$| $$  \ $$   #
@@ -8,11 +8,11 @@
 #     \  $/   | $$ /$$$$$$$$| $$$$$$$/|  $$$$$$/|  $$$$$$/| $$ | $$ | $$      | $$      | $$      |  $$$$$$/   #
 #      \_/    |__/|________/|_______/  \______/  \______/ |__/ |__/ |__/      |__/      |__/       \______/    #
 #                                                                                                              #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #                                                                                                
+                                                                                                         
+# FORK OF LEANDRO KIELIGER'S DOOM PPO TUTORIAL: https://lkieliger.medium.com/deep-reinforcement-learning-in-practice-by-playing-doom-part-1-getting-started-618c99075c77                                                                                                       
 
-# FORK OF LEANDRO KIELIGER'S DOOM PPO TUTORIAL: https://lkieliger.medium.com/deep-reinforcement-learning-in-practice-by-playing-doom-part-1-getting-started-618c99075c77
-
-# SCRIPT TO TRAIN A PPO AGENT ON THE ViZDOOM DEATHMATCH ENVIRONMENT.
+# SCRIPT TO TRAIN A PPO AGENT ON THE ViZDOOM DEATHMATCH ENVIRONMENT. 
 
 import numpy as np
 import vizdoom
@@ -280,7 +280,6 @@ class DoomWithBotsShaped(envs.DoomWithBots):
 
 REWARD_THRESHOLDS = [5, 10, 15, 20, 25, 25]
 
-
 # Curriculum based learning
 class DoomWithBotsCurriculum(DoomWithBotsShaped):
     def __init__(
@@ -376,9 +375,7 @@ def env_with_bots_curriculum(scenario, **kwargs) -> envs.DoomEnv:
 def vec_env_with_bots_curriculum(n_envs=1, **kwargs) -> VecTransposeImage:
     """Wraps a Doom game instance in a vectorized environment with shaped rewards and curriculum."""
     return VecTransposeImage(
-        SubprocVecEnv(
-            [lambda: env_with_bots_curriculum(**kwargs) for _ in range(n_envs)]
-        )
+        SubprocVecEnv([lambda: env_with_bots_curriculum(**kwargs) for _ in range(n_envs)])
     )
 
 
