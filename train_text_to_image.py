@@ -872,7 +872,7 @@ def main():
                     )
 
                     # We collapse the frame conditioning into the channel dimension
-                    concatenated_latents = noisy_latents.view(
+                    concatenated_latents = noisy_latents.reshape(
                         bs, buffer_len * latent_channels, latent_height, latent_width
                     )
 
