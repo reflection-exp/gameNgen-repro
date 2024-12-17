@@ -62,8 +62,6 @@ from utils import add_conditioning_noise, get_conditioning_noise
 
 logger = get_logger(__name__, log_level="INFO")
 
-torch.set_float32_matmul_precision("high")
-
 
 def log_validation(
     pipeline,
@@ -812,7 +810,7 @@ def main():
                     ].shape
 
                     # Fold buffer len in to batch for encoding in one go
-                    folded_conditional_images = batch["pixel_values"].view(
+                    folded_conditional_images = batch["pixel_values"].reshape(
                         bs * buffer_len, channels, height, width
                     )
 
@@ -823,7 +821,7 @@ def main():
 
                     _, latent_channels, latent_height, latent_width = latents.shape
                     # Separate back the conditioning frames
-                    latents = latents.view(
+                    latents = latents.reshape(
                         bs, buffer_len, latent_channels, latent_height, latent_width
                     )
 
@@ -862,7 +860,7 @@ def main():
                     )
 
                     # We collapse the frame conditioning into the channel dimension
-                    concatenated_latents = noisy_latents.view(
+                    concatenated_latents = noisy_latents.reshape(
                         bs, buffer_len * latent_channels, latent_height, latent_width
                     )
 
