@@ -51,7 +51,6 @@ from config_sd import (
     TRAINING_DATASET_DICT,
     VALIDATION_PROMPT,
     ZERO_OUT_ACTION_CONDITIONING_PROB,
-    MATMUL_PRECISION,
     VALIDATION_INFERENCE_STEPS,
     DEFAULT_TRAIN_BATCH_SIZE,
     DEFAULT_NUM_TRAIN_EPOCHS,
@@ -67,9 +66,6 @@ from utils import add_conditioning_noise, get_conditioning_noise
 # check_min_version("0.31.0.dev0")
 
 logger = get_logger(__name__, log_level="INFO")
-
-torch.set_float32_matmul_precision(MATMUL_PRECISION)
-
 
 def log_validation(
     pipeline,
@@ -822,7 +818,7 @@ def main():
                     ].shape
 
                     # Fold buffer len in to batch for encoding in one go
-                    folded_conditional_images = batch["pixel_values"].view(
+                    folded_conditional_images = batch["pixel_values"].reshape(
                         bs * buffer_len, channels, height, width
                     )
 
@@ -833,7 +829,7 @@ def main():
 
                     _, latent_channels, latent_height, latent_width = latents.shape
                     # Separate back the conditioning frames
-                    latents = latents.view(
+                    latents = latents.reshape(
                         bs, buffer_len, latent_channels, latent_height, latent_width
                     )
 
