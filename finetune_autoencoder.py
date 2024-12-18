@@ -9,7 +9,13 @@ from PIL import Image
 import io
 import base64
 import wandb
-from config_sd import HEIGHT, WIDTH
+from config_sd import (
+    HEIGHT,
+    WIDTH,
+    IMG_INTERPOLATION,
+    IMG_NORMALIZATION_MEAN,
+    IMG_NORMALIZATION_STD,
+)
 from tqdm import tqdm
 
 # Constants
@@ -26,10 +32,10 @@ train_dataset = dataset["train"]
 transform = transforms.Compose(
     [
         transforms.Resize(
-            (HEIGHT, WIDTH), interpolation=transforms.InterpolationMode.BILINEAR
+            (HEIGHT, WIDTH), interpolation=transforms.InterpolationMode[IMG_INTERPOLATION.upper()]
         ),
         transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5]),
+        transforms.Normalize(IMG_NORMALIZATION_MEAN, IMG_NORMALIZATION_STD),
     ]
 )
 

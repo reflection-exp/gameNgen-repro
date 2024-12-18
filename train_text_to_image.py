@@ -820,7 +820,7 @@ def main():
                     ].shape
 
                     # Fold buffer len in to batch for encoding in one go
-                    folded_conditional_images = batch["pixel_values"].reshape(
+                    folded_conditional_images = batch["pixel_values"].view(
                         bs * buffer_len, channels, height, width
                     )
 
@@ -831,7 +831,7 @@ def main():
 
                     _, latent_channels, latent_height, latent_width = latents.shape
                     # Separate back the conditioning frames
-                    latents = latents.reshape(
+                    latents = latents.view(
                         bs, buffer_len, latent_channels, latent_height, latent_width
                     )
 
@@ -870,7 +870,7 @@ def main():
                     )
 
                     # We collapse the frame conditioning into the channel dimension
-                    concatenated_latents = noisy_latents.reshape(
+                    concatenated_latents = noisy_latents.view(
                         bs, buffer_len * latent_channels, latent_height, latent_width
                     )
 
