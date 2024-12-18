@@ -31,7 +31,7 @@ def get_ft_vae_decoder():
     file_path = hf_hub_download(
         repo_id="P-H-B-D-a16z/GameNGenSDVaeDecoder", filename="trained_vae_decoder.pth"
     )
-    decoder_state_dict = torch.load(file_path, weights_only=True)
+    decoder_state_dict = torch.load(file_path, weights_only=True, map_location=torch.device('cpu'))
     return decoder_state_dict
 
 
