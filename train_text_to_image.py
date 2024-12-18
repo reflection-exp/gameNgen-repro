@@ -675,7 +675,7 @@ def main():
         args.lr_scheduler,
         optimizer=optimizer,
         num_warmup_steps=num_warmup_steps_for_scheduler,
-        num_training_steps=num_training_steps_for_scheduler,
+        num_training_steps_for_scheduler=num_training_steps_for_scheduler,
     )
 
     # Prepare everything with our `accelerator`.
