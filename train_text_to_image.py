@@ -820,8 +820,6 @@ def main():
                     ].shape
 
                     # Fold buffer len in to batch for encoding in one go
-                    # Using reshape() instead of view() for better CPU compatibility and safer tensor operations
-                    # reshape() creates a new tensor with the same data but different shape, while view() shares memory
                     folded_conditional_images = batch["pixel_values"].reshape(
                         bs * buffer_len, channels, height, width
                     )
@@ -833,7 +831,6 @@ def main():
 
                     _, latent_channels, latent_height, latent_width = latents.shape
                     # Separate back the conditioning frames
-                    # Using reshape() for CPU compatibility - reshape() handles non-contiguous tensors better than view()
                     latents = latents.reshape(
                         bs, buffer_len, latent_channels, latent_height, latent_width
                     )
@@ -873,7 +870,6 @@ def main():
                     )
 
                     # We collapse the frame conditioning into the channel dimension
-                    # Using reshape() for consistent tensor operations across different device types (CPU/GPU)
                     concatenated_latents = noisy_latents.reshape(
                         bs, buffer_len * latent_channels, latent_height, latent_width
                     )
