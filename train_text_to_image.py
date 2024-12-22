@@ -51,6 +51,11 @@ from config_sd import (
     TRAINING_DATASET_DICT,
     VALIDATION_PROMPT,
     ZERO_OUT_ACTION_CONDITIONING_PROB,
+    VALIDATION_INFERENCE_STEPS,
+    DEFAULT_TRAIN_BATCH_SIZE,
+    DEFAULT_NUM_TRAIN_EPOCHS,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_LR_WARMUP_STEPS,
 )
 from dataset import EpisodeDataset, get_dataloader
 from model import get_model, save_and_maybe_upload_to_hub
@@ -63,7 +68,6 @@ from utils import add_conditioning_noise, get_conditioning_noise
 logger = get_logger(__name__, log_level="INFO")
 
 torch.set_float32_matmul_precision("high")
-
 
 def log_validation(
     pipeline,
@@ -93,7 +97,9 @@ def log_validation(
         for _ in range(args.num_validation_images):
             images.append(
                 pipeline(
-                    args.validation_prompt, num_inference_steps=30, generator=generator
+                    args.validation_prompt,
+                    num_inference_steps=VALIDATION_INFERENCE_STEPS,
+                    generator=generator,
                 ).images[0]
             )
 
@@ -221,10 +227,12 @@ def parse_args():
     parser.add_argument(
         "--train_batch_size",
         type=int,
-        default=2,
+        default=DEFAULT_TRAIN_BATCH_SIZE,
         help="Batch size (per device) for the training dataloader.",
     )
-    parser.add_argument("--num_train_epochs", type=int, default=100)
+    parser.add_argument(
+        "--num_train_epochs", type=int, default=DEFAULT_NUM_TRAIN_EPOCHS
+    )
     parser.add_argument(
         "--max_train_steps",
         type=int,
@@ -245,7 +253,7 @@ def parse_args():
     parser.add_argument(
         "--learning_rate",
         type=float,
-        default=2e-5,
+        default=DEFAULT_LEARNING_RATE,
         help="Initial learning rate (after the potential warmup period) to use.",
     )
     parser.add_argument(
@@ -266,7 +274,7 @@ def parse_args():
     parser.add_argument(
         "--lr_warmup_steps",
         type=int,
-        default=500,
+        default=DEFAULT_LR_WARMUP_STEPS,
         help="Number of steps for the warmup in the lr scheduler.",
     )
     parser.add_argument(
@@ -667,7 +675,7 @@ def main():
         args.lr_scheduler,
         optimizer=optimizer,
         num_warmup_steps=num_warmup_steps_for_scheduler,
-        num_training_steps=num_training_steps_for_scheduler,
+        num_training_steps_for_scheduler=num_training_steps_for_scheduler,
     )
 
     # Prepare everything with our `accelerator`.
